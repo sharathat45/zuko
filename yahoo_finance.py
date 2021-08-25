@@ -59,6 +59,13 @@ def save_stock_data(stock_id,query_url):
         print("Historical data of "+stock_id+" exists but has no trading data")
 
 def main():
+    if os.path.exists('data') == False:
+        os.mkdir('data')
+    if os.path.exists(json_path) == False:
+        os.mkdir(json_path)
+    if os.path.exists(csv_path) == False:
+        os.mkdir(csv_path)
+    
     if check_internet() == False:
         print("Check Internet connections :(")
         return
