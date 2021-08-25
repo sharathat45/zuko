@@ -1,17 +1,15 @@
-import requests
 import json
-import urllib.request, json , time, os, difflib, itertools
+import urllib.request, json , time, os
 import pandas as pd
 from multiprocessing.dummy import Pool
 from datetime import datetime
 import http.client as httplib
 
 tickers = ['DIXON', 'MINDAIND', 'ROUTE', 'AMBER', 'REDINGTON', 'INDIAMART']
-querry_urls = [f'https://query1.finance.yahoo.com/v8/finance/chart/{i}.NS' for i in tickers]
-#"https://query1.finance.yahoo.com/v8/finance/chart/AFFLE.NS?symbol=AFFLE.NS&period1=0&period2=9999999999&interval=1d&includePrePost=true&events=div%2Csplit")
 
-json_path = os.getcwd()+os.sep+"data"+os.sep+"historic_data"+os.sep+"json"+os.sep
-csv_path = os.getcwd()+os.sep+"data"+os.sep+"historic_data"+os.sep+"csv"+os.sep
+query_urls = [f"https://query1.finance.yahoo.com/v8/finance/chart/{i}.NS?symbol={i}.NS&period1=0&period2=9999999999&interval=1d&includePrePost=true&events=div%2Csplit" for i in tickers]
+json_path = os.getcwd()+os.sep+"data"+os.sep+"json"+os.sep
+csv_path = os.getcwd()+os.sep+"data"+os.sep+"csv"+os.sep
 
 def get_date(utcformat):
    return datetime.utcfromtimestamp(int(utcformat)).strftime('%d-%m-%Y %H:%M:%S')
@@ -26,7 +24,7 @@ def check_internet():
         conn.close()
         return False
 
-def stock_data(stock_id,query_url):
+def save_stock_data(stock_id,query_url):
     #----------------------------json file------------------------------------------------------
     try:
         with urllib.request.urlopen(query_url) as url:
@@ -35,7 +33,7 @@ def stock_data(stock_id,query_url):
             json.dump(parsed, outfile, indent=4)
     except Exception as e:
         print(e)
-        print("|||  Historical data of "+ stock_id + " doesn't exist")
+        print("Historical data of "+ stock_id + " doesn't exist")
         return
 
     #---------------------------------Dataframe--------------------------------------------------
@@ -58,6 +56,17 @@ def stock_data(stock_id,query_url):
         print(">>>  Historical data of "+stock_id+" saved")
     except Exception as e:
         print(e)
-        print(">>>  Historical data of "+stock_id+" exists but has no trading data")
+        print("Historical data of "+stock_id+" exists but has no trading data")
 
-stock_data('AFFLE',"https://query1.finance.yahoo.com/v8/finance/chart/AFFLE.NS?symbol=AFFLE.NS&period1=0&period2=9999999999&interval=1d&includePrePost=true&events=div%2Csplit")
+def main():
+    if check_internet() == False:
+        print("Check Internet connections :(")
+        return
+    else:
+        with Pool(processes=len(tickers)) as pool:
+            pool.starmap(save_stock_data, zip(tickers,query_urls))
+        print("All downloads completed !")
+
+if __name__ == "__main__":
+    main()
+
